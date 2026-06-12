@@ -206,13 +206,16 @@
         <div><span class="lbl">Besoin perso pour vivre (€/an)</span><input type="number" id="vivre" value="24000"></div>
         <div><span class="lbl">Nature services</span><select id="typeServ"><option value="bnc">Libéral (BNC)</option><option value="bic">Commercial (BIC)</option></select></div>
       </div>
+      <div class="two">
+        <div><span class="lbl">Salaire net que je me verse (société) — €/an</span><input type="number" id="salNet" value="0"></div>
+        <div style="display:flex;align-items:flex-end"><span style="font-size:11.5px;color:var(--mut)">0 = tout en dividendes. Le reste (vivre + accumulation) sort en dividendes selon le curseur ci-dessous.</span></div>
+      </div>
 
       <div class="chk-row">
         <label class="chk" id="chkAcre"><input type="checkbox" id="acre"><span>🌱 ACRE (1ère année)</span></label>
         <label class="chk" id="chkVfl"><input type="checkbox" id="vfl"><span>💶 Versement libératoire</span></label>
         <label class="chk" id="chkHold"><input type="checkbox" id="holding"><span>🏛️ Holding</span></label>
         <label class="chk on" id="chkZfrr"><input type="checkbox" id="zfrr" checked><span>🌾 ZFRR (ta zone ✅)</span></label>
-        <label class="chk" id="chkSal"><input type="checkbox" id="salaire"><span>💼 Vivre en salaire (société) — sinon dividendes</span></label>
       </div>
 
       <div class="sliderbox">
@@ -268,8 +271,9 @@
         <div><label>IS normal %</label><input type="number" id="isHigh" value="25" step="0.5"></div>
         <div><label>Flat tax PFU %</label><input type="number" id="pfu" value="30" step="0.5"></div>
         <div><label>Surcoût div. EURL %</label><input type="number" id="tnsDiv" value="40" step="1"></div>
-        <div><label>Cotis. salaire SASU (% du net)</label><input type="number" id="kSasu" value="80" step="1"></div>
-        <div><label>Cotis. salaire EURL/TNS (% du net)</label><input type="number" id="kEurl" value="45" step="1"></div>
+        <div><label>Charges salariales SASU (% brut)</label><input type="number" id="tauxSal" value="22" step="1"></div>
+        <div><label>Charges patronales SASU (% brut)</label><input type="number" id="tauxPat" value="42" step="1"></div>
+        <div><label>Cotis. EURL/TNS (% du net)</label><input type="number" id="kEurl" value="45" step="1"></div>
         <div><label>Frais portage %</label><input type="number" id="fPort" value="8" step="0.5"></div>
         <div><label>Net portage %</label><input type="number" id="kPort" value="50" step="1"></div>
         <div><label>Compta EI €/an</label><input type="number" id="cEI" value="700" step="50"></div>
@@ -340,7 +344,7 @@ function getInputs(){const g=id=>+$(id).value||0;return{
   isLow:g('isLow')/100,isHigh:g('isHigh')/100,pfu:g('pfu')/100,tnsDiv:g('tnsDiv')/100,
   fPort:g('fPort')/100,kPort:g('kPort')/100,cEI:g('cEI'),cSoc:g('cSoc'),cHold:g('cHold'),cfe:g('cfe'),
   growth:g('growth')/100,rdt:g('rdt')/100,zfrr:$('zfrr').checked,zfrrYear:Math.max(1,g('zfrrYear')||1),
-  salaire:$('salaire').checked,kSasu:g('kSasu')/100,kEurl:g('kEurl')/100};}
+  salNet:g('salNet'),tauxSal:g('tauxSal')/100,tauxPat:g('tauxPat')/100,kEurl:g('kEurl')/100};}
 
 function calcYear(I,caServ,caVente,charges,exoRate){
   exoRate=exoRate||0;const ca=caServ+caVente;
@@ -356,14 +360,21 @@ function calcYear(I,caServ,caVente,charges,exoRate){
     const d2n=D=>{if(kind==='sasu')return D*(1-I.pfu);const s=I.capital*0.10,u=Math.min(D,s),o=Math.max(0,D-s);return u*(1-I.pfu)+o*(1-I.pfu-I.tnsDiv*0.55);};
     const n2d=N=>{if(kind==='sasu')return N/(1-I.pfu);const s=I.capital*0.10,ns=s*(1-I.pfu);return N<=ns?N/(1-I.pfu):s+(N-ns)/(1-I.pfu-I.tnsDiv*0.55);};
     const dispo=ca-charges-compta-I.cfe;
-    if(I.salaire){const kSal=kind==='sasu'?I.kSasu:I.kEurl;const coutSal=Math.min(I.vivre*(1+kSal),Math.max(0,dispo));const salNet=coutSal/(1+kSal),cotisSal=coutSal-salNet,irSal=irMarg(salNet*0.9),vivreNet=Math.max(0,salNet-irSal),shortV=Math.max(0,I.vivre-vivreNet);
-      const R=dispo-coutSal,is=isCalc(R,I.isLow,I.isHigh)*(1-exoRate),postIS=Math.max(0,R-is);let reinv=postIS*I.reinvPct;if(I.holding)reinv*=(1-0.0125);const extra=postIS*(1-I.reinvPct),eparg=d2n(extra),flat=extra-eparg;
-      const r={impot:Math.max(0,cotisSal+irSal+is+flat+compta+I.cfe),cotis:cotisSal,tax:is+flat+irSal,patr:vivreNet+reinv+eparg,vivre:vivreNet,reinv,eparg,short:shortV,valid:true};
-      r.detail=[['Chiffre d\'affaires',ca,'in'],['Charges déductibles',-charges,'out'],['Comptable'+(I.holding?' (+holding)':''),-compta,'out'],['CFE',-I.cfe,'out'],['Salaire net versé (pour vivre)',-salNet,'out'],[`Cotisations sur salaire (${kind==='sasu'?'assimilé salarié':'TNS'})`,-cotisSal,'out'],['Résultat avant IS',R,'sub'],[`IS (15/25%)${zt}`,-is,'out'],['Résultat après IS',postIS,'sub'],['Flat tax 30% (dividendes du surplus)',-flat,'out'],['IR sur salaire',-irSal,'out'],['↳ réinvesti / capitalisé',reinv,'info'],['↳ net perso (vivre+épargne)',vivreNet+eparg,'info'],['Patrimoine total',r.patr,'net']];return r;}
-    const R=dispo,is=isCalc(R,I.isLow,I.isHigh)*(1-exoRate),postIS=Math.max(0,R-is);
-    const gV=Math.min(postIS,n2d(I.vivre)),vNet=d2n(gV),short=Math.max(0,I.vivre-vNet);const surplus=Math.max(0,postIS-gV);let reinv=surplus*I.reinvPct;if(I.holding)reinv*=(1-0.0125);const extra=surplus*(1-I.reinvPct),eparg=d2n(extra);const flat=(gV+extra)-(vNet+eparg);
-    const r={impot:Math.max(0,is+flat+compta+I.cfe),cotis:0,tax:is+flat,patr:vNet+reinv+eparg,vivre:vNet,reinv,eparg,short,valid:true};
-    r.detail=[['Chiffre d\'affaires',ca,'in'],['Charges déductibles',-charges,'out'],['Comptable'+(I.holding?' (+holding)':''),-compta,'out'],['CFE',-I.cfe,'out'],['Résultat avant IS',R,'sub'],[`IS (15/25%)${zt}`,-is,'out'],['Résultat après IS',postIS,'sub'],['Flat tax 30% (dividendes sortis)',-flat,'out'],['↳ réinvesti / capitalisé',reinv,'info'],['↳ net perso (vivre+épargne)',vNet+eparg,'info'],['Patrimoine total',r.patr,'net']];return r;}
+    const salW=Math.max(0,I.salNet);let salNet=0,salariales=0,patronales=0,cotisTNS=0,irSal=0,coutSal=0;
+    if(salW>0){
+      if(kind==='sasu'){const cost0=(salW/(1-I.tauxSal))*(1+I.tauxPat);coutSal=Math.min(cost0,Math.max(0,dispo));const brut=coutSal/(1+I.tauxPat);salNet=brut*(1-I.tauxSal);salariales=brut*I.tauxSal;patronales=brut*I.tauxPat;}
+      else{coutSal=Math.min(salW*(1+I.kEurl),Math.max(0,dispo));salNet=coutSal/(1+I.kEurl);cotisTNS=coutSal-salNet;}
+      irSal=irMarg(salNet*0.9);}
+    const salSpend=Math.max(0,salNet-irSal);
+    const R=dispo-coutSal,is=isCalc(R,I.isLow,I.isHigh)*(1-exoRate),postIS=Math.max(0,R-is);
+    const gap=Math.max(0,I.vivre-salSpend),gross=Math.min(postIS,n2d(gap)),vivreDiv=d2n(gross);
+    const surplus=Math.max(0,postIS-gross);let reinv=surplus*I.reinvPct;if(I.holding)reinv*=(1-0.0125);
+    const extra=surplus*(1-I.reinvPct),epargDiv=d2n(extra),flat=(gross+extra)-(vivreDiv+epargDiv);
+    const perso=salSpend+vivreDiv+epargDiv,vivreShow=Math.min(I.vivre,salSpend+vivreDiv),epargShow=Math.max(0,perso-vivreShow),short=Math.max(0,I.vivre-(salSpend+vivreDiv));
+    const r={impot:Math.max(0,salariales+patronales+cotisTNS+irSal+is+flat+compta+I.cfe),cotis:salariales+patronales+cotisTNS,tax:is+flat+irSal,patr:perso+reinv,vivre:vivreShow,reinv,eparg:epargShow,short,valid:true};
+    const cot=kind==='sasu'?[['Salaire net versé',-salNet,'out'],[`Charges salariales (${(I.tauxSal*100).toFixed(0)}% du brut)`,-salariales,'out'],[`Charges patronales (${(I.tauxPat*100).toFixed(0)}% du brut)`,-patronales,'out']]:[['Rémunération nette',-salNet,'out'],[`Cotisations TNS (~${(I.kEurl*100).toFixed(0)}% du net)`,-cotisTNS,'out']];
+    r.detail=[['Chiffre d\'affaires',ca,'in'],['Charges déductibles',-charges,'out'],['Comptable'+(I.holding?' (+holding)':''),-compta,'out'],['CFE',-I.cfe,'out']].concat(salW>0?cot:[]).concat([['Résultat avant IS',R,'sub'],[`IS (15/25%)${zt}`,-is,'out'],['Résultat après IS',postIS,'sub'],['Flat tax 30% (dividendes)',-flat,'out']]).concat(salW>0&&irSal>0?[['IR sur salaire',-irSal,'out']]:[]).concat([['↳ réinvesti / capitalisé',reinv,'info'],['↳ net perso (vivre+épargne)',perso,'info'],['Patrimoine total',r.patr,'net']]);
+    return r;}
   function portage(){if(caVente>0)return{valid:false,msg:'gère pas la vente'};if(caServ<=0)return{valid:false,msg:'—'};const frais=caServ*I.fPort,dispo=caServ-frais,netAv=dispo*I.kPort,ir=irMarg(netAv*0.9),net=netAv-ir;const r={impot:caServ-net,cotis:dispo-netAv,tax:ir,patr:net,vivre:Math.min(net,I.vivre),reinv:0,eparg:Math.max(0,net-I.vivre),short:Math.max(0,I.vivre-net),valid:true};
     r.detail=[['CA facturé',caServ,'in'],[`Frais gestion portage (${(I.fPort*100).toFixed(0)}%)`,-frais,'out'],['Disponible',dispo,'sub'],['Cotisations (assimilé)',-(dispo-netAv),'out'],['Impôt sur le revenu',-ir,'out'],['Net en poche',net,'net']];return r;}
   return{micro:micro(),ei:reel(I.cEI),eurl_ir:reel(I.cSoc),eurl_is:societe('eurl'),sarl_ir:reel(I.cSoc),sarl_is:societe('eurl'),sasu_is:societe('sasu'),sasu_ir:reel(I.cSoc),port:portage()};

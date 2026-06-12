@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur de statut 2026 — </title>
+<style>
+  :root{
+    --bg:#f3f5fb;--card:#ffffff;--line:#e7ebf3;--ink:#1f2a44;--ink2:#5a6781;--mut:#8a93a8;
+    --indigo:#5b6cf0;--indigo2:#7c4dff;--green:#16a34a;--greenbg:#e8f7ee;--red:#e0564f;
+    --amber:#d9a313;--violet:#8b5cf6;--blue:#3b82f6;
+    --grad:linear-gradient(135deg,#5b6cf0,#7c4dff);
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --sh:0 1px 3px rgba(30,42,68,.06),0 8px 24px rgba(30,42,68,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Helvetica,sans-serif;font-size:15px;line-height:1.55}
+  .wrap{max-width:980px;margin:0 auto;padding:0 18px 90px}
+  .nav{display:flex;align-items:center;gap:18px;padding:18px 2px;flex-wrap:wrap}
+  .logo{font-weight:800;font-size:17px;color:var(--ink)}
+  .logo b{color:var(--indigo)}
+  .nav .sp{flex:1}
+  .nav a,.nav .navtab{font-size:13.5px;color:var(--ink2);text-decoration:none;cursor:pointer;padding:7px 12px;border-radius:8px}
+  .nav .navtab.active{background:var(--grad);color:#fff;font-weight:600}
+  .nav a:hover{color:var(--ink)}
+  .hero{text-align:center;padding:14px 0 22px}
+  .badge{display:inline-block;background:#eef0fe;color:var(--indigo);font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:30px;border:1px solid #dfe3fd}
+  h1{font-size:34px;margin:16px 0 8px;letter-spacing:-.5px}
+  h1 span{color:var(--indigo)}
+  .hero p{color:var(--ink2);max-width:620px;margin:0 auto;font-size:15px}
+  .hero .small{color:var(--mut);font-style:italic;font-size:13.5px;margin-top:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh);padding:24px}
+  .seg{display:flex;background:#f1f3fa;border-radius:12px;padding:5px;gap:5px;margin-bottom:20px}
+  .seg button{flex:1;border:none;background:none;padding:11px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}
+  .seg button.on{background:#fff;color:var(--indigo);box-shadow:0 1px 4px rgba(30,42,68,.08)}
+  .lbl{font-size:11.5px;font-weight:700;letter-spacing:.6px;color:var(--mut);text-transform:uppercase;margin:16px 0 7px;display:block}
+  input[type=number],select{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:11px;padding:13px 14px;font-size:16px;color:var(--ink);font-family:inherit}
+  input[type=number]:focus,select:focus{outline:none;border-color:var(--indigo)}
+  .big-in input{font-size:20px;font-weight:700;font-family:var(--mono)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .chk-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .chk{display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);border-radius:11px;padding:11px 14px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink2);flex:1;min-width:150px}
+  .chk input{width:18px;height:18px;accent-color:var(--indigo)}
+  .chk.on{border-color:var(--green);background:var(--greenbg);color:#15803d}
+  .sliderbox{background:#f7f8fc;border:1px solid var(--line);border-radius:13px;padding:15px 16px;margin-top:16px}
+  .sliderbox .top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink2)}
+  .sliderbox .top b{color:var(--indigo)}
+  input[type=range]{width:100%;accent-color:var(--indigo2);margin-top:10px}
+  .sliderbox .ends{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:3px}
+  .cta{width:100%;margin-top:20px;background:var(--grad);color:#fff;border:none;border-radius:13px;padding:15px;font-size:15.5px;font-weight:700;cursor:pointer}
+  .cta:hover{filter:brightness(1.05)}
+
+  .resulthero{background:var(--grad);color:#fff;border-radius:18px;padding:22px 26px;margin:22px 0;display:flex;justify-content:space-between;align-items:flex-start;box-shadow:0 10px 30px rgba(124,77,255,.25)}
+  .resulthero .k{font-size:12px;font-weight:700;letter-spacing:.7px;opacity:.85;text-transform:uppercase}
+  .resulthero .v{font-size:40px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin:2px 0}
+  .resulthero .v small{font-size:18px;font-weight:700;opacity:.9}
+  .resulthero .sub{font-size:13px;opacity:.85}
+  .resulthero .rt{text-align:right}
+  .pillst{display:inline-block;background:rgba(255,255,255,.22);padding:5px 13px;border-radius:20px;font-weight:700;font-size:14px}
+  .reco{display:inline-block;background:#16a34a;padding:4px 11px;border-radius:20px;font-size:11.5px;font-weight:700;margin-top:8px}
+
+  .secttitle{font-size:12px;font-weight:700;letter-spacing:.8px;color:var(--mut);text-transform:uppercase;text-align:center;margin:26px 0 14px}
+  .cmpgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:760px){.cmpgrid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+  .cmp{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:15px 12px;text-align:center;cursor:pointer;position:relative;transition:.15s}
+  .cmp:hover{border-color:#c9cffa}
+  .cmp.sel{border-color:var(--indigo);box-shadow:0 0 0 3px #eef0fe}
+  .cmp .nm{font-size:11.5px;font-weight:700;letter-spacing:.4px;color:var(--mut);text-transform:uppercase}
+  .cmp .amt{font-size:22px;font-weight:800;color:var(--indigo);margin:5px 0 2px;font-family:var(--mono)}
+  .cmp .ca{font-size:11.5px;color:var(--mut)}
+  .cmp.dead{opacity:.55}
+  .cmp.dead .amt{color:var(--mut);font-size:13px;font-weight:600}
+  .cmp .opt{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#16a34a;color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+  .cmp .rgp{font-size:9px;font-weight:800;padding:1px 6px;border-radius:5px;position:absolute;top:8px;right:8px}
+  .rgp.IR{background:#fdf3da;color:#a9790c}.rgp.IS{background:#e6efff;color:#2563eb}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px;text-align:center}
+  .kpi .v{font-size:21px;font-weight:800;font-family:var(--mono)}
+  .kpi .l{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--mut);text-transform:uppercase;margin-top:3px}
+  .kpi.b .v{color:var(--indigo)}.kpi.r .v{color:var(--red)}.kpi.a .v{color:var(--amber)}.kpi.g .v{color:var(--green)}
+
+  .block{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-top:16px;box-shadow:var(--sh)}
+  .block h3{font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--ink2);margin:0 0 14px;text-transform:uppercase}
+  .ln{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f0f2f8;font-size:14.5px}
+  .ln .v{font-family:var(--mono);font-weight:600}
+  .ln.in .v{color:var(--green)} .ln.out .v{color:var(--red)}
+  .ln.sub{font-weight:700} .ln.sub .v{color:var(--ink)}
+  .ln.net{border-top:2px solid var(--line);border-bottom:none;margin-top:4px;padding-top:14px;font-weight:800}
+  .ln.net .lab,.ln.net .v{color:var(--indigo);font-size:17px}
+  .ln.info{color:var(--violet);font-size:12.5px;padding:6px 0 6px 14px;border:none}
+  .ln.info .v{color:var(--violet)}
+  .ln.note{color:var(--mut);font-size:12px;font-style:italic;border:none;padding:5px 0}
+
+  .tjm{background:linear-gradient(120deg,#eef9f1,#eef0fe);border:1px solid #d8e9dd;border-radius:16px;padding:20px 22px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .tjm .v{font-size:32px;font-weight:800;color:var(--indigo);font-family:var(--mono)}
+  .tjm .v small{font-size:16px}
+  .tjm .k{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--mut);text-transform:uppercase}
+  .tjm .sub{font-size:13px;color:var(--ink2)}
+  .tjm .jr{text-align:right}.tjm .jr label{font-size:12px;color:var(--ink2);display:block;margin-bottom:5px}
+  .tjm .jr input{width:90px;text-align:center}
+
+  .infogrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  .info{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+  .info .l{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--mut);text-transform:uppercase}
+  .info .v{font-size:15px;font-weight:600;margin-top:4px}
+
+  table.proj{width:100%;border-collapse:collapse;margin-top:6px}
+  table.proj th,table.proj td{padding:11px 10px;text-align:right;font-family:var(--mono);font-size:13.5px}
+  table.proj th:first-child,table.proj td:first-child{text-align:left;font-family:inherit}
+  table.proj thead th{font-size:10.5px;letter-spacing:.5px;color:var(--mut);text-transform:uppercase;border-bottom:1px solid var(--line)}
+  table.proj tbody tr{border-bottom:1px solid #f0f2f8}
+  table.proj tbody tr.win{background:var(--greenbg)}
+  table.proj .b3{font-weight:800}
+  table.proj .dq td{color:var(--mut);font-style:italic}
+  table.proj .tg{font-size:10px;font-weight:700;background:#16a34a;color:#fff;padding:1px 6px;border-radius:5px;margin-left:6px}
+
+  .togbtn{display:block;margin:18px auto 0;background:#fff;border:1.5px solid var(--indigo);color:var(--indigo);border-radius:11px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer}
+  .note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--mut);border-radius:0 12px 12px 0;padding:13px 16px;font-size:13.5px;color:var(--ink2);margin-top:11px}
+  .note b{color:var(--ink)} .note.ok{border-left-color:var(--green);background:#f3fbf5}
+  .note.warn{border-left-color:var(--red);background:#fdf4f3}.note.info{border-left-color:var(--indigo);background:#f5f6fe}
+  .savebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 15px;margin:16px 0;font-size:13px;color:var(--ink2);box-shadow:var(--sh)}
+  .savebar button,.savebar .imp{background:#f1f3fa;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 13px;font-size:13px;cursor:pointer}
+  .savebar button:hover,.savebar .imp:hover{border-color:var(--indigo)}
+  .savebar details{width:100%}.savebar summary{cursor:pointer;font-size:12.5px}
+  .savebar textarea{width:100%;height:70px;border:1px solid var(--line);border-radius:8px;padding:8px;font-family:var(--mono);font-size:11px;margin:8px 0}
+  .foot{color:var(--mut);font-size:12px;margin-top:26px;line-height:1.8;text-align:center}
+  /* marques */
+  .mk-head{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-bottom:16px}
+  .mk-total{background:var(--grad);color:#fff;border-radius:15px;padding:16px 20px;text-align:right;min-width:240px}
+  .mk-total .l{font-size:11px;font-weight:700;letter-spacing:.5px;opacity:.85;text-transform:uppercase}
+  .mk-total .v{font-size:27px;font-weight:800;font-family:var(--mono);margin:3px 0 11px}
+  .mk-btn{background:#fff;color:var(--indigo);border:none;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+  .mk-add{background:#fff;border:1.5px dashed var(--line);color:var(--ink2);border-radius:13px;padding:14px;width:100%;font-size:14px;cursor:pointer;margin-top:4px}
+  .mk-add:hover{border-color:var(--indigo)}
+  .brand{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--sh)}
+  .brand-top{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+  .brand-top input{flex:1;font-weight:700}
+  .brand-del{background:#fff;border:1px solid var(--line);color:var(--mut);border-radius:9px;width:38px;height:38px;cursor:pointer;flex:none;font-size:15px}
+  .brand-del:hover{border-color:var(--red);color:var(--red)}
+  .brand-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .brand-grid label,.brand-params label{display:block;font-size:11px;font-weight:600;color:var(--mut);margin:0 0 5px;text-transform:uppercase;letter-spacing:.3px}
+  .brand-grid input,.brand-grid select,.brand-params input,.brand-params select{font-size:14px;padding:9px 11px}
+  .brand-params{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);gap:11px;align-items:end}
+  .pal-row{display:grid;grid-template-columns:1fr 1fr 1fr 34px;gap:8px;align-items:end;margin-bottom:7px}
+  .pal-add{background:#f1f3fa;border:1px dashed var(--line);color:var(--ink2);border-radius:8px;padding:7px;font-size:12px;cursor:pointer;grid-column:1/-1}
+  .pal-del{background:#fff;border:1px solid var(--line);color:var(--mut);border-radius:8px;height:38px;cursor:pointer}
+  .palwrap{grid-column:1/-1}
+  .brand-out{margin-top:13px;padding-top:12px;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
+  .brand-out b{color:var(--green);font-family:var(--mono);font-size:17px}
+  .brand-out .bn{color:var(--mut);font-size:12px;margin-left:8px}
+  .mk-note{background:#f5f6fe;border:1px solid var(--line);border-left:3px solid var(--indigo);border-radius:0 12px 12px 0;padding:13px 16px;font-size:13px;color:var(--ink2);margin-top:16px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <div class="logo">🥧 Simulateur <b>Statut 2026</b></div>
+    <div class="sp"></div>
+    <span class="navtab active" data-tab="sim">Simulateur</span>
+    <span class="navtab" data-tab="marques">Mes marques</span>
+    <a href="https://entreprendre.service-public.gouv.fr/vosdroits/F31139" target="_blank" rel="noopener">Sources fiscales ↗</a>
+  </div>
+
+  <div id="panel-sim">
+    <div class="hero">
+      <span class="badge">9 statuts · Micro · EI · EURL · SASU · SARL Famille · Portage · +Holding +ZFRR</span>
+      <h1>Simulateur de statut <span>2026</span></h1>
+      <p>Compare les statuts sur ton <b>patrimoine net créé</b> (ce que tu sors pour vivre <i>+</i> ce que tu capitalises), avec exonération <b>ZFRR</b> et tes <b>marques</b>.</p>
+      <p class="small">Résultats après charges sociales + impôts — taux 2026 vérifiés. Estimation, pas un conseil fiscal.</p>
+    </div>
+
+    <div class="savebar">
+      <span>💾 <b style="color:var(--ink)">Sauvegarde fiable</b> :</span>
+      <button id="exportBtn">⬇ Exporter (.json)</button>
+      <label class="imp">⬆ Importer<input type="file" id="importInput" accept="application/json,.json" class="hidden"></label>
+      <button id="copyBtn">📋 Copier le code</button>
+      <details><summary>📥 Restaurer depuis un code collé</summary>
+        <textarea id="pasteArea" placeholder="Colle ton code puis Restaurer"></textarea>
+        <button id="pasteBtn">Restaurer</button></details>
+    </div>
+
+    <div class="card">
+      <div class="seg">
+        <button id="tServices" class="on">💼 Prestation de services</button>
+        <button id="tVente">🛍️ Commerce / Vente</button>
+      </div>
+
+      <div id="rowServ"><span class="lbl">Chiffre d'affaires services HT (€/an)</span>
+        <div class="big-in"><input type="number" id="caServ" value="50000"></div></div>
+      <div id="rowVente" class="hidden"><span class="lbl">CA vente de marchandises (€/an)</span>
+        <div class="big-in"><input type="number" id="caVente" value="0"></div></div>
+
+      <div class="two">
+        <div><span class="lbl">Charges / frais réels (€/an)</span><input type="number" id="charges" value="500"></div>
+        <div><span class="lbl">Situation familiale</span>
+          <select id="parts"><option value="1">Célibataire (1 part)</option><option value="1.5">Parent isolé +1 (1,5)</option><option value="2">Couple (2 parts)</option><option value="2.5">Couple +1 enfant (2,5)</option><option value="3">Couple +2 enfants (3)</option></select></div>
+      </div>
+      <div class="two">
+        <div><span class="lbl">Autres revenus du foyer (€/an)</span><input type="number" id="autres" value="0"></div>
+        <div><span class="lbl">Capital social EURL (€)</span><input type="number" id="capital" value="1000"></div>
+      </div>
+      <div class="two">
+        <div><span class="lbl">Besoin perso pour vivre (€/an)</span><input type="number" id="vivre" value="24000"></div>
+        <div><span class="lbl">Nature services</span><select id="typeServ"><option value="bnc">Libéral (BNC)</option><option value="bic">Commercial (BIC)</option></select></div>
+      </div>
+
+      <div class="chk-row">
+        <label class="chk" id="chkAcre"><input type="checkbox" id="acre"><span>🌱 ACRE (1ère année)</span></label>
+        <label class="chk" id="chkVfl"><input type="checkbox" id="vfl"><span>💶 Versement libératoire</span></label>
+        <label class="chk" id="chkHold"><input type="checkbox" id="holding"><span>🏛️ Holding</span></label>
+        <label class="chk on" id="chkZfrr"><input type="checkbox" id="zfrr" checked><span>🌾 ZFRR (ta zone ✅)</span></label>
+      </div>
+
+      <div class="sliderbox">
+        <div class="top"><span>♻️ Part du surplus réinvestie / capitalisée</span><b id="reinvLbl">50 %</b></div>
+        <input type="range" id="reinv" min="0" max="100" value="50" step="5">
+        <div class="ends"><span>0 % tout en poche</span><span>50/50</span><span>100 % capitalisé</span></div>
+      </div>
+      <div class="two" style="margin-top:14px">
+        <div><span class="lbl">ZFRR — année d'activité</span><input type="number" id="zfrrYear" value="1" min="1" max="9"></div>
+        <div><span class="lbl">Croissance CA /an &nbsp; <b id="growthLbl" style="color:var(--indigo)">25 %</b></span><input type="range" id="growth" min="0" max="100" value="25" step="5"></div>
+      </div>
+      <div><span class="lbl">Rendement du capital placé/réinvesti &nbsp; <b id="rdtLbl" style="color:var(--indigo)">5 %</b></span><input type="range" id="rdt" min="0" max="20" value="5" step="1"></div>
+    </div>
+
+    <div class="resulthero">
+      <div>
+        <div class="k">Patrimoine net créé / mois</div>
+        <div class="v" id="heroVal">—</div>
+        <div class="sub">après charges sociales + impôts (vivre + capitalisé)</div>
+      </div>
+      <div class="rt"><span class="pillst" id="heroName">—</span><br><span class="reco">★ Conseillé</span></div>
+    </div>
+
+    <div class="secttitle">Comparer les statuts</div>
+    <div class="cmpgrid" id="cmpGrid"></div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="block"><h3 id="decTitle">📋 Décomposition annuelle</h3><div id="decBody"></div></div>
+
+    <div class="tjm">
+      <div><div class="k">TJM cible (services)</div><div class="v" id="tjmVal">—<small> €/jour</small></div><div class="sub">à facturer pour atteindre ton CA</div></div>
+      <div class="jr"><label>Jours facturés / mois</label><input type="number" id="tjmDays" value="18" min="1" max="25"></div>
+    </div>
+
+    <div class="infogrid" id="infoGrid"></div>
+
+    <div class="block"><h3>📈 Projection — patrimoine net cumulé à 3 / 5 / 10 ans</h3>
+      <table class="proj"><thead><tr><th>Statut</th><th>3 ans</th><th>5 ans</th><th>10 ans</th></tr></thead>
+      <tbody id="projBody"></tbody></table>
+      <div style="font-size:11.5px;color:var(--mut);margin-top:8px">Capital cumulé & composé (réinvesti + épargne), CA croissant au taux choisi. L'exonération ZFRR décroît (100 % an 1-5, puis 75/50/25 %, nulle après l'an 8).</div></div>
+
+    <div id="notes"></div>
+
+    <button class="togbtn" id="moreBtn">⚙️ Hypothèses & taux modifiables</button>
+    <div class="block hidden" id="assumBlock"><h3>Hypothèses (taux 2026)</h3>
+      <div class="brand-grid" style="grid-template-columns:repeat(2,1fr)">
+        <div><label>Cotis. micro BNC %</label><input type="number" id="rBnc" value="25.6" step="0.1"></div>
+        <div><label>Cotis. micro BIC serv. %</label><input type="number" id="rBicS" value="21.2" step="0.1"></div>
+        <div><label>Cotis. micro vente %</label><input type="number" id="rVente" value="12.3" step="0.1"></div>
+        <div><label>Cotis. TNS (réel) %</label><input type="number" id="rTns" value="40" step="1"></div>
+        <div><label>IS réduit %</label><input type="number" id="isLow" value="15" step="0.5"></div>
+        <div><label>IS normal %</label><input type="number" id="isHigh" value="25" step="0.5"></div>
+        <div><label>Flat tax PFU %</label><input type="number" id="pfu" value="30" step="0.5"></div>
+        <div><label>Surcoût div. EURL %</label><input type="number" id="tnsDiv" value="40" step="1"></div>
+        <div><label>Frais portage %</label><input type="number" id="fPort" value="8" step="0.5"></div>
+        <div><label>Net portage %</label><input type="number" id="kPort" value="50" step="1"></div>
+        <div><label>Compta EI €/an</label><input type="number" id="cEI" value="700" step="50"></div>
+        <div><label>Compta société €/an</label><input type="number" id="cSoc" value="1300" step="50"></div>
+        <div><label>Compta holding €/an</label><input type="number" id="cHold" value="1200" step="50"></div>
+        <div><label>CFE €/an</label><input type="number" id="cfe" value="300" step="50"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MARQUES ===== -->
+  <div id="panel-marques" class="hidden">
+    <div class="hero"><h1>🏪 Mes marques & <span>rémunération</span></h1>
+      <p>Liste les e-commerces dont tu fais partie et comment tu es payé. Le total alimente le CA services du simulateur.</p></div>
+    <div class="card">
+      <div class="mk-head">
+        <div style="flex:1;min-width:240px"><h3 style="margin:0 0 5px;font-size:18px">Tes participations</h3>
+          <p style="color:var(--ink2);margin:0;font-size:13.5px">Fixe / % CA / % Bénéfice / Fixe+% / Paliers de bénéfices (marginal).</p></div>
+        <div class="mk-total"><div class="l">Rémunération totale / an</div><div class="v" id="mkTotal">—</div>
+          <button class="mk-btn" id="mkReport">↪ Reporter dans le CA services</button></div>
+      </div>
+      <div id="brandList"></div>
+      <button class="mk-add" id="mkAdd">+ Ajouter une marque</button>
+      <div class="mk-note"><b>Paliers de bénéfices</b> = marginal (façon tranches d'impôt) : chaque taux ne s'applique qu'à la portion du bénéfice dans sa tranche. Base des % (CA ou bénéfice) réglable par marque.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    Patrimoine net = vivre + réinvesti + épargne (réinvesti en société = abrité à l'IS, d'où la divergence à 3 ans). Régime IR taxé sur le bénéfice sorti ou non · IS : bénéfice retenu taxé qu'à l'IS. ZFRR : exonération bénéfices 100 % (an 1-5) puis 75/50/25 % — micro exclue. Plafonds micro 2026 : services 83 600 € · vente 203 100 €. Détail & sources : https://entreprendre.service-public.gouv.fr/vosdroits/F31139.
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const eur=n=>Math.round(n).toLocaleString('fr-FR')+' €';
+const k=n=>Math.round(n/1000)+'k€';
+// ---- persistance ----
+const STORE='simu-statut-pub-v2';
+function saveState(){const s={};document.querySelectorAll('#panel-sim input,#panel-sim select').forEach(e=>{if(e.id)s[e.id]=e.type==='checkbox'?e.checked:e.value;});try{localStorage.setItem(STORE,JSON.stringify(s));}catch(_){}}
+function loadState(){let s=null;try{s=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}if(!s)return;document.querySelectorAll('#panel-sim input,#panel-sim select').forEach(e=>{if(!e.id||!(e.id in s))return;if(e.type==='checkbox')e.checked=s[e.id];else e.value=s[e.id];});}
+// ---- barèmes ----
+function irBareme(R,parts){const q=R/parts;if(q<=0)return 0;const t=[[11600,0],[29579,0.11],[84577,0.30],[181917,0.41],[1e12,0.45]];let prev=0,tax=0;for(const[lim,rate]of t){if(q>prev){tax+=(Math.min(q,lim)-prev)*rate;prev=lim;if(q<=lim)break;}}return tax*parts;}
+const tmiOf=(R,parts)=>{const q=R/parts;return q<=11600?0:q<=29579?0.11:q<=84577?0.30:q<=181917?0.41:0.45;};
+const exoForYear=y=>y<=5?1:y===6?0.75:y===7?0.5:y===8?0.25:0;
+const isCalc=(b,l,h)=>b<=0?0:Math.min(b,42500)*l+Math.max(0,b-42500)*h;
+
+const META={
+  micro:{regime:'TNS — Micro-social',retraite:'★★ Limitée',chomage:'✗ Non',compta:'Livre de recettes'},
+  ei:{regime:'TNS — réel',retraite:'★★★ Selon cotisations',chomage:'✗ Non (ATI possible)',compta:'Comptabilité réelle'},
+  eurl_ir:{regime:'Gérant TNS',retraite:'★★★ TNS',chomage:'✗ Non',compta:'Compta société'},
+  eurl_is:{regime:'Gérant TNS',retraite:'★★★ TNS',chomage:'✗ Non',compta:'Compta société + IS'},
+  sarl_ir:{regime:'Gérant TNS · famille',retraite:'★★★ TNS',chomage:'✗ Non',compta:'Compta société'},
+  sarl_is:{regime:'Gérant TNS · famille',retraite:'★★★ TNS',chomage:'✗ Non',compta:'Compta société + IS'},
+  sasu_is:{regime:'Assimilé salarié',retraite:'★★★★ Régime général',chomage:'✗ Non (mandataire)',compta:'Compta société + liasse'},
+  sasu_ir:{regime:'Assimilé · option IR 5 ans',retraite:'★★★★ Régime général',chomage:'✗ Non',compta:'Compta société'},
+  port:{regime:'Salarié (porté)',retraite:'★★★★ Régime général',chomage:'✓ Oui',compta:'Fiche de paie (gérée)'}
+};
+const ORDER=['micro','ei','eurl_ir','eurl_is','sarl_ir','sarl_is','sasu_is','sasu_ir','port'];
+const NAMES={micro:'Micro',ei:'EI Réel',eurl_ir:'EURL',eurl_is:'EURL',sarl_ir:'SARL Fam.',sarl_is:'SARL Fam.',sasu_is:'SASU',sasu_ir:'SASU',port:'Portage'};
+const REG={micro:'IR',ei:'IR',eurl_ir:'IR',eurl_is:'IS',sarl_ir:'IR',sarl_is:'IS',sasu_is:'IS',sasu_ir:'IR',port:''};
+const SUBS={micro:'forfait',ei:'TNS',eurl_ir:'TNS défaut',eurl_is:'option',sarl_ir:'option',sarl_is:'défaut',sasu_is:'assimilé',sasu_ir:'opt. 5 ans',port:'salariat'};
+
+function getInputs(){const g=id=>+$(id).value||0;return{
+  caServ:g('caServ'),caVente:g('caVente'),charges:g('charges'),autres:g('autres'),parts:Math.max(0.5,g('parts')),
+  vivre:g('vivre'),reinvPct:g('reinv')/100,capital:g('capital'),
+  acre:$('acre').checked,vfl:$('vfl').checked,typeServ:$('typeServ').value,holding:$('holding').checked,
+  rBnc:g('rBnc')/100,rBicS:g('rBicS')/100,rVente:g('rVente')/100,rTns:g('rTns')/100,
+  isLow:g('isLow')/100,isHigh:g('isHigh')/100,pfu:g('pfu')/100,tnsDiv:g('tnsDiv')/100,
+  fPort:g('fPort')/100,kPort:g('kPort')/100,cEI:g('cEI'),cSoc:g('cSoc'),cHold:g('cHold'),cfe:g('cfe'),
+  growth:g('growth')/100,rdt:g('rdt')/100,zfrr:$('zfrr').checked,zfrrYear:Math.max(1,g('zfrrYear')||1)};}
+
+function calcYear(I,caServ,caVente,charges,exoRate){
+  exoRate=exoRate||0;const ca=caServ+caVente;
+  const rServ=I.typeServ==='bnc'?I.rBnc:I.rBicS,abServ=I.typeServ==='bnc'?0.34:0.50;
+  const irMarg=base=>irBareme(I.autres+Math.max(0,base),I.parts)-irBareme(I.autres,I.parts);
+  const zt=exoRate?` · exonéré ${Math.round(exoRate*100)}% ZFRR`:'';
+  const split=(net,impot,cotis,tax)=>{const v=Math.min(Math.max(net,0),I.vivre),short=Math.max(0,I.vivre-net);const sp=Math.max(0,net-I.vivre),re=sp*I.reinvPct,ep=sp-re;return{impot,cotis,tax,patr:Math.max(0,net),vivre:v,reinv:re,eparg:ep,short,valid:true};};
+  function micro(){const cotis=(caServ*rServ+caVente*I.rVente)*(I.acre?0.5:1);const ir=I.vfl?caServ*(I.typeServ==='bnc'?0.022:0.017)+caVente*0.01:irMarg(caServ*(1-abServ)+caVente*(1-0.71));const r=split(ca-charges-(cotis+ir+I.cfe),cotis+ir+I.cfe,cotis,ir);if(caServ>83600||caVente>203100)r.disq='plafond micro dépassé (services 83 600 € · vente 203 100 €)';
+    r.detail=[['Chiffre d\'affaires',ca,'in'],['Charges réelles (non déductibles)',-charges,'out'],[`Cotisations sociales (${(rServ*100).toFixed(1)}%${I.acre?' · ACRE −50%':''})`,-cotis,'out'],[I.vfl?'IR (versement libératoire)':'Impôt sur le revenu (barème)',-ir,'out'],['CFE',-I.cfe,'out'],['Net en poche = patrimoine',r.patr,'net'],['ZFRR : la micro n\'y a pas droit',0,'note']];return r;}
+  function reel(compta){const benef=ca-charges-I.cfe-compta,cotis=Math.max(0,benef)*I.rTns,ir=irMarg(benef-cotis)*(1-exoRate);const r=split(ca-charges-(cotis+ir+I.cfe+compta),cotis+ir+I.cfe+compta,cotis,ir);
+    r.detail=[['Chiffre d\'affaires',ca,'in'],['Charges déductibles',-charges,'out'],['Comptable',-compta,'out'],['CFE',-I.cfe,'out'],['Bénéfice imposable',benef,'sub'],[`Cotisations TNS (~${(I.rTns*100).toFixed(0)}%)`,-cotis,'out'],[`Impôt sur le revenu${zt}`,-ir,'out'],['Net en poche = patrimoine',r.patr,'net']];return r;}
+  function societe(kind){const compta=I.cSoc+(I.holding?I.cHold:0),R=ca-charges-compta-I.cfe;const is=isCalc(R,I.isLow,I.isHigh)*(1-exoRate),postIS=Math.max(0,R-is);
+    const d2n=D=>{if(kind==='sasu')return D*(1-I.pfu);const s=I.capital*0.10,u=Math.min(D,s),o=Math.max(0,D-s);return u*(1-I.pfu)+o*(1-I.pfu-I.tnsDiv*0.55);};
+    const n2d=N=>{if(kind==='sasu')return N/(1-I.pfu);const s=I.capital*0.10,ns=s*(1-I.pfu);return N<=ns?N/(1-I.pfu):s+(N-ns)/(1-I.pfu-I.tnsDiv*0.55);};
+    const gV=Math.min(postIS,n2d(I.vivre)),vNet=d2n(gV),short=Math.max(0,I.vivre-vNet);const surplus=Math.max(0,postIS-gV);let reinv=surplus*I.reinvPct;if(I.holding)reinv*=(1-0.0125);const extra=surplus*(1-I.reinvPct),eparg=d2n(extra);const flat=(gV+extra)-(vNet+eparg);
+    const r={impot:Math.max(0,is+flat+compta+I.cfe),cotis:0,tax:is+flat,patr:vNet+reinv+eparg,vivre:vNet,reinv,eparg,short,valid:true};
+    r.detail=[['Chiffre d\'affaires',ca,'in'],['Charges déductibles',-charges,'out'],['Comptable'+(I.holding?' (+holding)':''),-compta,'out'],['CFE',-I.cfe,'out'],['Résultat avant IS',R,'sub'],[`IS (15/25%)${zt}`,-is,'out'],['Résultat après IS',postIS,'sub'],['Flat tax 30% (dividendes sortis)',-flat,'out'],['↳ réinvesti / capitalisé',reinv,'info'],['↳ net perso (vivre+épargne)',vNet+eparg,'info'],['Patrimoine total',r.patr,'net']];return r;}
+  function portage(){if(caVente>0)return{valid:false,msg:'gère pas la vente'};if(caServ<=0)return{valid:false,msg:'—'};const frais=caServ*I.fPort,dispo=caServ-frais,netAv=dispo*I.kPort,ir=irMarg(netAv*0.9),net=netAv-ir;const r={impot:caServ-net,cotis:dispo-netAv,tax:ir,patr:net,vivre:Math.min(net,I.vivre),reinv:0,eparg:Math.max(0,net-I.vivre),short:Math.max(0,I.vivre-net),valid:true};
+    r.detail=[['CA facturé',caServ,'in'],[`Frais gestion portage (${(I.fPort*100).toFixed(0)}%)`,-frais,'out'],['Disponible',dispo,'sub'],['Cotisations (assimilé)',-(dispo-netAv),'out'],['Impôt sur le revenu',-ir,'out'],['Net en poche',net,'net']];return r;}
+  return{micro:micro(),ei:reel(I.cEI),eurl_ir:reel(I.cSoc),eurl_is:societe('eurl'),sarl_ir:reel(I.cSoc),sarl_is:societe('eurl'),sasu_is:societe('sasu'),sasu_ir:reel(I.cSoc),port:portage()};
+}
+
+let selKey=null;
+function render(){
+  $('reinvLbl').textContent=$('reinv').value+' %';$('growthLbl').textContent=$('growth').value+' %';$('rdtLbl').textContent=$('rdt').value+' %';
+  document.querySelectorAll('.chk').forEach(c=>{const cb=c.querySelector('input');c.classList.toggle('on',cb.checked);});
+  const I=getInputs();const ca=I.caServ+I.caVente;const abServ=I.typeServ==='bnc'?0.34:0.50;
+  const exo1=I.zfrr?exoForYear(I.zfrrYear):0;
+  const Y=calcYear(I,I.caServ,I.caVente,I.charges,exo1);
+  // viability
+  const liveKeys=ORDER.filter(key=>Y[key].valid&&!Y[key].disq).sort((a,b)=>Y[b].patr-Y[a].patr);
+  const best=liveKeys[0];
+  if(!selKey||!Y[selKey]||!Y[selKey].valid||Y[selKey].disq) selKey=best;
+  // hero
+  const bo=Y[best];
+  $('heroVal').innerHTML=eur(bo.patr/12)+' <small>/mois</small>';
+  $('heroName').textContent=NAMES[best]+' '+(REG[best]||'');
+  // comparison grid
+  $('cmpGrid').innerHTML=ORDER.map(key=>{const o=Y[key];const dead=!o.valid||o.disq;
+    const amt=dead?(o.disq?'hors plafond':(o.msg||'n/a')):eur(o.patr/12)+' <small style="font-size:11px;color:var(--mut)">/mois</small>';
+    return `<div class="cmp ${key===selKey?'sel':''} ${dead?'dead':''}" data-k="${key}">
+      ${key===best?'<span class="opt">★ Optimal</span>':''}${REG[key]?`<span class="rgp ${REG[key]}">${REG[key]}</span>`:''}
+      <div class="nm">${NAMES[key]}</div><div class="amt">${amt}</div>
+      <div class="ca">${dead&&o.disq?o.disq.slice(0,22):'CA: '+k(ca)+' · '+SUBS[key]}</div></div>`;}).join('');
+  // KPI for selected
+  const s=Y[selKey];const tauxC=ca>0?Math.round(s.cotis/ca*100):0;const tauxI=ca>0?Math.round(s.tax/ca*100):0;
+  $('kpis').innerHTML=`<div class="kpi b"><div class="v">${eur(ca)}</div><div class="l">CA annuel</div></div>
+    <div class="kpi r"><div class="v">${tauxC}%</div><div class="l">Taux charges sociales</div></div>
+    <div class="kpi a"><div class="v">${tauxI}%</div><div class="l">Taux effectif impôt</div></div>
+    <div class="kpi g"><div class="v">${eur(s.patr)}</div><div class="l">Patrimoine / an</div></div>`;
+  // décomposition
+  $('decTitle').textContent='📋 Décomposition annuelle — '+NAMES[selKey]+' '+(REG[selKey]||'');
+  $('decBody').innerHTML=s.detail.map(([lab,val,t])=>{const vt=t==='note'?'':((t==='out')?'−':'')+eur(Math.abs(val));return `<div class="ln ${t}"><span class="lab">${lab}</span><span class="v">${vt}</span></div>`;}).join('')+`<div class="ln"><span class="lab">Soit par mois</span><span class="v" style="color:var(--indigo);font-weight:800">${eur(s.patr/12)} /mois</span></div>`;
+  // TJM
+  const days=+$('tjmDays').value||18;$('tjmVal').innerHTML=(I.caServ>0?Math.round(I.caServ/(days*12)):0)+' <small>€/jour</small>';
+  // info cards
+  const m=META[selKey];
+  $('infoGrid').innerHTML=`<div class="info"><div class="l">Régime social</div><div class="v">${m.regime}</div></div>
+    <div class="info"><div class="l">Retraite</div><div class="v">${m.retraite}</div></div>
+    <div class="info"><div class="l">Accès chômage</div><div class="v">${m.chomage}</div></div>
+    <div class="info"><div class="l">Comptabilité</div><div class="v">${m.compta}</div></div>`;
+  // projection 3 / 5 / 10 ans
+  const cap={},shortF={};ORDER.forEach(key=>{cap[key]=0;shortF[key]=false;});
+  const snap={3:{},5:{},10:{}};
+  for(let yr=1;yr<=10;yr++){const f=Math.pow(1+I.growth,yr-1);const exoY=I.zfrr?exoForYear(I.zfrrYear+yr-1):0;const C=calcYear(I,I.caServ*f,I.caVente*f,I.charges*f,exoY);
+    ORDER.forEach(key=>{const o=C[key];if(!o.valid||o.disq)return;cap[key]=cap[key]*(1+I.rdt)+o.reinv+o.eparg;if(o.short>0)shortF[key]=true;});
+    if(yr===3||yr===5||yr===10)ORDER.forEach(key=>{snap[yr][key]=cap[key];});}
+  const disq=new Set(ORDER.filter(key=>Y[key].disq||!Y[key].valid));
+  const rows=ORDER.filter(key=>!disq.has(key)).map(key=>({key,a:snap[3][key]||0,b:snap[5][key]||0,c:snap[10][key]||0})).sort((x,y)=>y.c-x.c);
+  const dead=ORDER.filter(key=>disq.has(key));
+  const microC=(rows.find(r=>r.key==='micro')||{}).c||0;
+  $('projBody').innerHTML=rows.map((r,i)=>`<tr class="${i===0?'win':''}"><td><b>${NAMES[r.key]}</b> <span class="rgp ${REG[r.key]}" style="font-size:9px">${REG[r.key]}</span>${i===0?'<span class="tg">BEST</span>':''}</td><td>${k(r.a)}</td><td>${k(r.b)}</td><td class="b3">${k(r.c)}${microC&&r.key!=='micro'&&r.c>microC?' ×'+(r.c/microC).toFixed(2):''}</td></tr>`).join('')
+    +dead.map(key=>`<tr class="dq"><td>${NAMES[key]}</td><td colspan="3" style="text-align:left">${Y[key].disq||Y[key].msg||'non applicable'}</td></tr>`).join('');
+  // notes
+  const N=[];const tmi=tmiOf(I.autres+(I.caServ*(1-abServ)+I.caVente*(1-0.71)),I.parts);
+  N.push(['info',`<b>TMI calculé : ${Math.round(tmi*100)} %</b> — barème 2026 (impôt sur les revenus 2025), sur ${I.parts} part(s).`]);
+  if(I.zfrr)N.push(['ok',`<b>ZFRR active — année ${I.zfrrYear} : ${Math.round(exo1*100)}% d'exonération d'impôt sur les bénéfices.</b> Profite aux statuts au réel/IS, <b>pas à la micro</b>. ⚠️ Valide « création vs conversion » + de minimis avec un expert-comptable.`]);
+  if(disq.size&&[...disq].some(key=>Y[key].disq))N.push(['warn',`<b>Micro hors course</b> : CA au-dessus du plafond (83 600 € services / 203 100 € vente) → bascule au réel.`]);
+  if(I.caServ>37500&&I.caServ<=83600)N.push(['info',`<b>TVA</b> : au-dessus de 37 500 € de services tu sors de la franchise → TVA à facturer. En B2B (tes marques la récupèrent) c'est <b>neutre sur ton net</b>.`]);
+  N.push(['',`<b>Doublons EURL/SARL/SASU à régime égal = mêmes chiffres</b> : le choix entre eux est juridique (associés, responsabilité), pas fiscal. SASU-IR = option temporaire 5 ans, approximée.`]);
+  $('notes').innerHTML=N.map(([c,t])=>`<div class="note ${c}">${t}</div>`).join('');
+  saveState();
+}
+
+// ===== Sous-onglets services/vente =====
+$('tServices').addEventListener('click',()=>{$('tServices').classList.add('on');$('tVente').classList.remove('on');$('rowServ').classList.remove('hidden');$('rowVente').classList.add('hidden');});
+$('tVente').addEventListener('click',()=>{$('tVente').classList.add('on');$('tServices').classList.remove('on');$('rowVente').classList.remove('hidden');$('rowServ').classList.add('hidden');});
+// onglets nav
+document.querySelectorAll('.navtab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.navtab').forEach(x=>x.classList.remove('active'));t.classList.add('active');const id=t.dataset.tab;$('panel-sim').classList.toggle('hidden',id!=='sim');$('panel-marques').classList.toggle('hidden',id!=='marques');try{localStorage.setItem('simu-tab2',id);}catch(_){}}));
+$('moreBtn').addEventListener('click',()=>$('assumBlock').classList.toggle('hidden'));
+// sélection carte
+$('cmpGrid').addEventListener('click',e=>{const c=e.target.closest('.cmp');if(!c||c.classList.contains('dead'))return;selKey=c.dataset.k;render();});
+
+document.querySelectorAll('#panel-sim input,#panel-sim select').forEach(e=>e.addEventListener('input',render));
+
+// ===== Marques =====
+const MKSTORE='simu-marques-pub-v1';
+const DEALS=[['fixe','Fixe (montant/an)'],['pctCA','% du CA'],['pctBenef','% du bénéfice'],['fixePct','Fixe + %'],['paliers','Paliers de bénéfices']];
+let brands=[];
+function defBrands(){return[{name:'Marque A — fixe',ca:60000,marge:25,deal:'fixe',fixe:6000,taux:0,base:'benef',paliers:[]},{name:'Marque B — fixe + %',ca:120000,marge:25,deal:'fixePct',fixe:2000,taux:5,base:'benef',paliers:[]},{name:'Marque C — paliers',ca:400000,marge:25,deal:'paliers',fixe:0,taux:0,base:'benef',paliers:[{up:20000,fixe:2000,taux:0},{up:100000,fixe:0,taux:5},{up:1000000000,fixe:0,taux:10}]}];}
+function loadBrands(){let s=null;try{s=JSON.parse(localStorage.getItem(MKSTORE)||'null');}catch(_){}brands=Array.isArray(s)&&s.length?s:defBrands();}
+function saveBrands(){try{localStorage.setItem(MKSTORE,JSON.stringify(brands));}catch(_){}}
+const bBenef=b=>(+b.ca||0)*(+b.marge||0)/100;
+function bRemun(b){const ca=+b.ca||0,be=bBenef(b);switch(b.deal){case'fixe':return+b.fixe||0;case'pctCA':return ca*(+b.taux||0)/100;case'pctBenef':return be*(+b.taux||0)/100;case'fixePct':return(+b.fixe||0)+((b.base==='ca'?ca:be)*(+b.taux||0)/100);case'paliers':{const x=b.base==='ca'?ca:be;let c=0,lo=0;for(const r of(b.paliers||[])){const up=+r.up||Infinity;if(x>lo){c+=(+r.fixe||0);c+=(Math.min(x,up)-lo)*(+r.taux||0)/100;}lo=up;if(x<=lo)break;}return c;}}return 0;}
+function baseSel(b){return `<div><label>Base du %</label><select class="bf bbase" data-f="base"><option value="benef" ${b.base!=='ca'?'selected':''}>Bénéfice</option><option value="ca" ${b.base==='ca'?'selected':''}>CA</option></select></div>`;}
+function paramsHTML(b){if(b.deal==='fixe')return `<div><label>Montant fixe €/an</label><input type="number" class="bf" data-f="fixe" value="${b.fixe||0}"></div>`;if(b.deal==='pctCA')return `<div><label>% du CA</label><input type="number" class="bf" data-f="taux" value="${b.taux||0}" step="0.5"></div>`;if(b.deal==='pctBenef')return `<div><label>% du bénéfice</label><input type="number" class="bf" data-f="taux" value="${b.taux||0}" step="0.5"></div>`;if(b.deal==='fixePct')return `<div><label>Fixe €/an</label><input type="number" class="bf" data-f="fixe" value="${b.fixe||0}"></div><div><label>%</label><input type="number" class="bf" data-f="taux" value="${b.taux||0}" step="0.5"></div>${baseSel(b)}`;if(b.deal==='paliers'){const rows=(b.paliers||[]).map((r,pi)=>`<div class="pal-row"><div><label>Jusqu'à (bénéf.) €</label><input type="number" class="pf" data-p="${pi}" data-pf="up" value="${r.up||0}"></div><div><label>+ Fixe €</label><input type="number" class="pf" data-p="${pi}" data-pf="fixe" value="${r.fixe||0}"></div><div><label>% tranche</label><input type="number" class="pf" data-p="${pi}" data-pf="taux" value="${r.taux||0}" step="0.5"></div><button class="pal-del" data-paldel="${pi}">✕</button></div>`).join('');return `<div class="palwrap"><div style="max-width:200px;margin-bottom:10px">${baseSel(b)}</div>${rows}<button class="pal-add">+ palier</button></div>`;}return '';}
+function renderBrands(){const dealSel=b=>`<select class="bf bdeal" data-f="deal">${DEALS.map(([v,l])=>`<option value="${v}" ${b.deal===v?'selected':''}>${l}</option>`).join('')}</select>`;
+  $('brandList').innerHTML=brands.map((b,i)=>`<div class="brand" data-idx="${i}"><div class="brand-top"><input class="bf" data-f="name" value="${(b.name||'').replace(/"/g,'&quot;')}" placeholder="Nom de la marque"><button class="brand-del" data-del="${i}">✕</button></div><div class="brand-grid"><div><label>CA marque €/an</label><input type="number" class="bf" data-f="ca" value="${b.ca||0}"></div><div><label>Marge nette %</label><input type="number" class="bf" data-f="marge" value="${b.marge||0}"></div><div><label>Type de deal</label>${dealSel(b)}</div></div><div class="brand-params">${paramsHTML(b)}</div><div class="brand-out" data-out="${i}"></div></div>`).join('');updateMk();}
+function updateMk(){let tot=0;brands.forEach((b,i)=>{const r=bRemun(b);tot+=r;const el=document.querySelector('.brand-out[data-out="'+i+'"]');if(el)el.innerHTML=`Ta rémunération : <b>${eur(r)}</b><span class="bn">bénéfice marque ${eur(bBenef(b))} · ${bBenef(b)>0?Math.round(r/bBenef(b)*100):0}%</span>`;});const mt=$('mkTotal');if(mt)mt.textContent=eur(tot);saveBrands();return tot;}
+const BL=$('brandList');
+BL.addEventListener('input',e=>{const c=e.target.closest('.brand');if(!c)return;const i=+c.dataset.idx;if(e.target.classList.contains('pf')){brands[i].paliers[+e.target.dataset.p][e.target.dataset.pf]=e.target.value;}else if(e.target.classList.contains('bf')){brands[i][e.target.dataset.f]=e.target.value;}updateMk();});
+BL.addEventListener('change',e=>{const c=e.target.closest('.brand');if(!c)return;const i=+c.dataset.idx;if(e.target.classList.contains('bdeal')){brands[i].deal=e.target.value;renderBrands();}else if(e.target.classList.contains('bbase')){brands[i].base=e.target.value;updateMk();}});
+BL.addEventListener('click',e=>{const c=e.target.closest('.brand');const i=c?+c.dataset.idx:-1;if(e.target.dataset.del!==undefined){brands.splice(+e.target.dataset.del,1);renderBrands();}else if(e.target.classList.contains('pal-add')){brands[i].paliers=brands[i].paliers||[];brands[i].paliers.push({up:0,fixe:0,taux:0});renderBrands();}else if(e.target.dataset.paldel!==undefined){brands[i].paliers.splice(+e.target.dataset.paldel,1);renderBrands();}});
+$('mkAdd').addEventListener('click',()=>{brands.push({name:'',ca:0,marge:25,deal:'fixe',fixe:0,taux:0,base:'benef',paliers:[]});renderBrands();});
+$('mkReport').addEventListener('click',()=>{const tot=updateMk();$('caServ').value=Math.round(tot);document.querySelector('.navtab[data-tab="sim"]').click();render();});
+
+// ===== Export / Import =====
+function fullConfig(){const inputs={};document.querySelectorAll('#panel-sim input,#panel-sim select').forEach(e=>{if(e.id)inputs[e.id]=e.type==='checkbox'?e.checked:e.value;});return{v:2,inputs,brands};}
+function applyConfig(cfg){if(!cfg||typeof cfg!=='object')return false;if(cfg.inputs)Object.entries(cfg.inputs).forEach(([id,val])=>{const e=$(id);if(!e)return;if(e.type==='checkbox')e.checked=val;else e.value=val;});if(Array.isArray(cfg.brands)){brands=cfg.brands;renderBrands();}render();return true;}
+$('exportBtn').addEventListener('click',()=>{const b=new Blob([JSON.stringify(fullConfig(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ma-config-simulateur.json';document.body.appendChild(a);a.click();a.remove();});
+$('importInput').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{applyConfig(JSON.parse(r.result));alert('Données restaurées ✓');}catch(_){alert('Fichier invalide.');}};r.readAsText(f);e.target.value='';});
+$('copyBtn').addEventListener('click',()=>{const t=JSON.stringify(fullConfig());$('pasteArea').value=t;const d=$('pasteArea').closest('details');if(d)d.open=true;let ok=false;try{navigator.clipboard.writeText(t);ok=true;}catch(_){}if(!ok)$('pasteArea').select();$('copyBtn').textContent=ok?'✓ Copié':'↓ sélectionné';setTimeout(()=>$('copyBtn').textContent='📋 Copier le code',1600);});
+$('pasteBtn').addEventListener('click',()=>{try{if(applyConfig(JSON.parse($('pasteArea').value))){$('pasteBtn').textContent='✓ Restauré';setTimeout(()=>$('pasteBtn').textContent='Restaurer',1600);}}catch(_){alert('Texte invalide.');}});
+
+// ===== init =====
+try{loadBrands();renderBrands();}catch(e){console.error('marques error',e);}
+try{loadState();render();}catch(e){console.error('render error',e);}
+try{if(localStorage.getItem('simu-tab2')==='marques')document.querySelector('.navtab[data-tab="marques"]').click();}catch(_){}
